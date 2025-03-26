@@ -2,7 +2,6 @@ import osmnx as ox
 import pandas as pd
 import networkx as nx
 
-# Veriyi oluştur (240 koordinatın tamamı)
 data = [
     [1, 21491, 38.709714, 35.552545],
     [2, 32221, 38.694468, 35.549217],
@@ -246,23 +245,17 @@ data = [
     [240, 79159, 38.714675, 35.558583]
 ]
 
-# DataFrame oluştur
 df = pd.DataFrame(data, columns=['Sira', 'No', 'Enlem', 'Boylam'])
 
-# Referans nokta
 ref_point = (38.684962, 35.567250)
 
-# Yol ağı grafiğini indir (10 km yarıçap)
 G = ox.graph_from_point(ref_point, dist=10000, network_type='drive')
 
-# Grafiğin bağlantılılığını kontrol et (NetworkX ile)
 print("Grafik bağlantılı mı?", nx.is_strongly_connected(G))
 
-# Referans noktayı eşle
 ref_node = ox.distance.nearest_nodes(G, ref_point[1], ref_point[0])
 print(f"Referans nokta düğümü: {ref_node}")
 
-# Tüm koordinatları eşle
 nodes = []
 for idx, row in df.iterrows():
     node = ox.distance.nearest_nodes(G, row['Boylam'], row['Enlem'])
@@ -270,11 +263,9 @@ for idx, row in df.iterrows():
     print(f"Sıra {row['Sira']}, No {row['No']}: En yakın düğüm = {node}")
 df['Node'] = nodes
 
-# Mesafeleri hesapla ve hata ayıklama yap
 distances = []
 for idx, node in enumerate(df['Node']):
     try:
-        # NetworkX ile mesafe hesapla
         distance = nx.shortest_path_length(G, ref_node, node, weight='length')
         distances.append(distance)
     except Exception as e:
@@ -282,11 +273,9 @@ for idx, node in enumerate(df['Node']):
         distances.append(None)
 df['Mesafe (metre)'] = distances
 
-# Sonuçları kaydet
 result_df = df[['Sira', 'No', 'Enlem', 'Boylam', 'Mesafe (metre)']]
 result_df.to_csv('mesafeler.csv', index=False)
 
-# İlk 5 satırı ve None olanları göster
 print("İlk 5 satır:")
 print(result_df.head())
 print("\nNone olan satırlar:")
